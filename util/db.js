@@ -7,7 +7,7 @@ const queries = require("../model/schema");
 const pool = new Pool({
   connectionString: "postgresql://ps_skillcase_user:G03J1D285LMtGsaMJLwIwbc8Rp5UxPU8@dpg-d3ibbsc9c44c73akvpgg-a/ps_skillcase",
   ssl: {
-    rejectUnauthorized: false, // Render requires SSL
+    rejectUnauthorized: false, 
   },
 });
 // Test the connection
