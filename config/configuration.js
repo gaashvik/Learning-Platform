@@ -8,7 +8,7 @@ const username= process.env.DB_USER;
 const password = process.env.DB_PASS;
 const database = process.env.DB_DATABASE;
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY;
-
+console.log("Secret ky"+JWT_SECRET_KEY);
 const db_config = {
     "host": host,
     "user":username,
