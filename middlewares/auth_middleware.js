@@ -1,4 +1,4 @@
-const { config } = require("../config/configuration");
+const { JWT_SECRET_KEY } = require("../config/configuration");
 const jwt = require("jsonwebtoken");
 
 function authMiddleware(req,res,next){
@@ -7,7 +7,7 @@ function authMiddleware(req,res,next){
     if (!token){
         return res.sendStatus(401);
     }
-    jwt.verify(token,config.JWT_SECRET_KEY,(err,user) => {
+    jwt.verify(token,JWT_SECRET_KEY,(err,user) => {
         if (err){
             return res.status(403).send(err);
         }
@@ -38,7 +38,7 @@ function optionalAuth(req,res,next){
         return next();
     }
 
-    jwt.verify(token,config.JWT_SECRET_KEY,(err,user) => {
+    jwt.verify(token,JWT_SECRET_KEY,(err,user) => {
         if (err){
             return res.sendStatus(403);
         }
