@@ -1,4 +1,4 @@
-const { config } = require("dotenv");
+const { config } = require("../config/configuration");
 const jwt = require("jsonwebtoken");
 
 function authMiddleware(req,res,next){
