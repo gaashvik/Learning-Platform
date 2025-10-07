@@ -40,6 +40,8 @@ async function signup(req, res) {
       user: { user_id: newId, username, role, user_prof_level: proficiency_level },
       token,
     });
+    console.log({user: { user_id: newId, username, role, user_prof_level: proficiency_level },
+      token});
   } catch (err) {
     console.error(err);
     res.status(500).json({ msg: "Error while trying to create account" });
