@@ -22,15 +22,16 @@ pool.getConnection()
     .catch(err => console.error("DB connection failed:", err));
 
 
-
-
 async function initDb(pool){
     try{
         await pool.query(queries.createFlashCardSet);
         await pool.query(queries.createCards);
-        await pool.query(queries.createCardSides);
+        await pool.query(queries.createUser);
+        await pool.query(queries.createUserCardSubmission);
+        await pool.query(queries.createUserFlashSubmission);
+
         console.log("tables created/already exist!");
-        console.log(res);
+        // console.log(res);
     }
     catch (err){
         console.log(`error occured while trying to create tables:${err}`);

@@ -3,14 +3,18 @@ const {pool} = require("../util/db");
 
 async function getFlashSetByLanguage(req, res) {
   const language = req.query.language;
+  const user_id = req.user?.user_id;
   if (!language) {
     return res.status(400).send("No language was selected");
   }
 
   try {
     const rows = await pool.query(
-      "SELECT * FROM flash_card_set WHERE language = ?",
-      [language]
+      `SELECT * FROM flash_card_set f
+      LEFT JOIN user_chapter_submissions u
+      on f.set_id = u.set_id AND u.user_id = ?
+      WHERE f.language = ?`,
+      [user_id,language]
     );
 
     console.log(rows); 
