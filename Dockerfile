@@ -8,7 +8,7 @@ RUN npm install
 
 COPY . .
 
-RUN chmod +x wait-for-it.sh
+# RUN chmod +x wait-for-it.sh
 
 EXPOSE 3000
 
