@@ -9,7 +9,7 @@ function authMiddleware(req,res,next){
     }
     jwt.verify(token,config.JWT_SECRET_KEY,(err,user) => {
         if (err){
-            return res.sendStatus(403).send(err);
+            return res.status(403).send(err);
         }
 
         req.user = user;
