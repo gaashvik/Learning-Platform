@@ -1,22 +1,16 @@
 const { pool } = require("../util/db");
 
 // GET FLASH SETS BY LANGUAGE
-async function getFlashSetByLanguage(req, res) {
-  const language = req.query.language;
-  const user_id = req.user?.user_id;
-
-  if (!language) {
-    return res.status(400).send("No language was selected");
-  }
+async function getFlashSetByProf(req, res) {
+  const proficiency_level = req.params.prof_level;
+  const user = req.user;
 
   try {
     const result = await pool.query(
-      `SELECT f.*, u.progress, u.test_status, u.last_reviewed
+      `SELECT f.*
        FROM flash_card_set f
-       LEFT JOIN user_chapter_submissions u
-         ON f.set_id = u.set_id AND u.user_id = $1
-       WHERE f.language = $2`,
-      [user_id, language]
+       WHERE f.proficiency_level = $1`,
+      [proficiency_level]
     );
 
     res.status(200).json(result.rows);
@@ -110,4 +104,4 @@ async function saveCardState(req, res) {
   }
 }
 
-module.exports = { getFlashSetByLanguage, getFlahsCards, saveCardState };
+module.exports = { getFlashSetByProf, getFlahsCards, saveCardState };

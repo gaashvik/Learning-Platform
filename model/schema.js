@@ -1,3 +1,6 @@
+
+
+
 const createFlashCardSet = `
 CREATE TABLE IF NOT EXISTS flash_card_set (
   set_id SERIAL PRIMARY KEY,
@@ -5,8 +8,8 @@ CREATE TABLE IF NOT EXISTS flash_card_set (
   modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   number_of_cards INT DEFAULT 0,
   set_name VARCHAR(255) NOT NULL,
-  language VARCHAR(255) NOT NULL,
-  difficulty_level VARCHAR(100)
+  proficiency_level VARCHAR(255) NOT NULL,
+  language VARCHAR(255) NOT NULL
 );
 `;
 
@@ -28,7 +31,9 @@ CREATE TABLE IF NOT EXISTS app_user (
   user_id VARCHAR(50) PRIMARY KEY,
   username VARCHAR(255) NOT NULL,
   password VARCHAR(255) NOT NULL,
+  number VARCHAR(255) NOT NULL,
   role VARCHAR(255) NOT NULL,
+  current_profeciency_level VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

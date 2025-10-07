@@ -6,10 +6,10 @@ const { v4: uuidv4 } = require("uuid");
 
 // SIGNUP
 async function signup(req, res) {
-  const { username, password } = req.body;
-
+  const {number, username, password,proficiency_level } = req.body;
+  console.log(req.body);
   try {
-    const result = await pool.query("SELECT * FROM app_user WHERE username = $1", [username]);
+    const result = await pool.query("SELECT * FROM app_user WHERE number = $1", [number]);
     const rows = result.rows;
 
     if (rows.length > 0) {
@@ -22,22 +22,22 @@ async function signup(req, res) {
 
   const hashed = await bcrypt.hash(password, 10);
   const newId = uuidv4();
-  const role = "user";
+  const role = "amdin";
 
   try {
     await pool.query(
-      "INSERT INTO app_user (user_id, username, password, role) VALUES ($1, $2, $3, $4)",
-      [newId, username, hashed, role]
+      "INSERT INTO app_user (user_id, username, password, role,current_profeciency_level,number) VALUES ($1, $2, $3, $4,$5,$6)",
+      [newId, username, hashed, role,proficiency_level,number]
     );
 
     const token = jwt.sign(
-      { user_id: newId, username, role },
+      { user_id: newId, username, role, user_prof_level : proficiency_level },
       config.JWT_SECRET_KEY,
       { expiresIn: "60d" }
     );
 
     res.status(200).json({
-      user: { user_id: newId, username, role },
+      user: { user_id: newId, username, role, user_prof_level: proficiency_level },
       token,
     });
   } catch (err) {
@@ -49,34 +49,34 @@ async function signup(req, res) {
 // LOGIN
 async function login(req, res) {
   if (!req.body) {
-    return res.status(400).json({ msg: "Username or password missing" });
+    return res.status(400).json({ msg: "number or password missing" });
   }
 
-  const { username, password } = req.body;
+  const { number, password } = req.body;
 
   try {
-    const result = await pool.query("SELECT * FROM app_user WHERE username = $1", [username]);
+    const result = await pool.query("SELECT * FROM app_user WHERE number = $1", [number]);
     const rows = result.rows;
 
     if (rows.length === 0) {
-      return res.status(400).json({ msg: "Invalid username or password" });
+      return res.status(400).json({ msg: "Invalid number or password" });
     }
 
     const user = rows[0];
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      return res.status(400).json({ msg: "Invalid username or password" });
+      return res.status(400).json({ msg: "Invalid number or password" });
     }
 
     const token = jwt.sign(
-      { user_id: user.user_id, username: user.username, role: user.role },
+      { user_id: user.user_id, username: user.username, role: user.role, user_prof_level:user.proficiency_level},
       config.JWT_SECRET_KEY,
       { expiresIn: "60d" }
     );
 
     res.status(200).json({
-      user: { user_id: user.user_id, username: user.username, role: user.role },
+      user: { user_id: user.user_id, username: user.username, role: user.role, user_prof_level: user.proficiency_level},
       token,
     });
   } catch (err) {

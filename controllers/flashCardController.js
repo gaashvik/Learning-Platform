@@ -7,7 +7,7 @@ async function addFlashSet(req, res) {
     return res.status(400).send("No file uploaded");
   }
 
-  const { set_name, language, difficulty_level } = req.body;
+  const {set_name, proficiency_level } = req.body;
   const results = [];
 
   const bufferStream = new stream.PassThrough();
@@ -26,15 +26,16 @@ async function addFlashSet(req, res) {
 
         // 1️⃣ Insert into flash_card_set and get the new set_id
         const setInsert = await client.query(
-          `INSERT INTO flash_card_set (set_name, language, difficulty_level, number_of_cards)
-           VALUES ($1, $2, $3, $4)
+          `INSERT INTO flash_card_set (set_name, language, proficiency_level, number_of_cards)
+           VALUES ($1, 'German', $2, $3)
            RETURNING set_id`,
-          [set_name, language, difficulty_level, results.length]
+          [set_name, proficiency_level, results.length]
         );
 
         const set_id = setInsert.rows[0].set_id;
 
-        // 2️⃣ Build the parameterized insert for cards
+
+
         const cardRows = results.map((row) => [
           set_id,
           row.front_content,

@@ -6,8 +6,9 @@ const userRouter = require("./routes/userRouter");
 const {authMiddleware,authorizeRole,optionalAuth} = require("./middlewares/auth_middleware");
 const app = express();
 const cors = require('cors');
+const allowed_orgins=["https://skillcase-fronend-k4z5.vercel.app","http://localhost:5173"]
 app.use(cors({
-  origin: 'https://skillcase-fronend-k4z5.vercel.app', 
+  origin: allowed_orgins, 
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true, 
 }));
