@@ -1,70 +1,84 @@
-const{pool} = require("../util/db");
-const stream = require ("stream");
+const { pool } = require("../util/db");
+const stream = require("stream");
 const csv = require("csv-parser");
-const { buffer } = require("stream/consumers");
-const { diff } = require("util");
 
+async function addFlashSet(req, res) {
+  if (!req.file) {
+    return res.status(400).send("No file uploaded");
+  }
 
+  const { set_name, language, difficulty_level } = req.body;
+  const results = [];
 
-async function addFlashSet(req,res){
-    if (!req.file){
-        return res.status(400).send("no file uploaded");
-    }
-    console.log("got here");
-    console.log(req.body);
-    const set_name = req.body.set_name;
-    const language = req.body.language;
-    const difficulty_level = req.body.difficulty_level;
+  const bufferStream = new stream.PassThrough();
+  bufferStream.end(req.file.buffer);
 
-    const results = [];
-
-    const bufferStream =  new stream.PassThrough();
-    bufferStream.end(req.file.buffer);
-
-    bufferStream
-    .pipe(csv({ mapHeaders: ({ header }) => header.trim()})).on("data",(row) => {
-        console.log("parsed row:",row);
-        results.push(row);
+  bufferStream
+    .pipe(csv({ mapHeaders: ({ header }) => header.trim() }))
+    .on("data", (row) => {
+      results.push(row);
     })
-    .on("end",async ()=>{
-        const conn = await pool.getConnection();
+    .on("end", async () => {
+      const client = await pool.connect();
 
-        try{
-            await conn.beginTransaction();
-           
-            const [set_result] =  await conn.query(`INSERT INTO flash_card_set(set_name,language,difficulty_level,number_of_cards) VALUES (?,?,?,?)`,[set_name,language,difficulty_level,results.length]);
-            console.log(set_result);
+      try {
+        await client.query("BEGIN");
 
-            const set_id = set_result.insertId;
-            console.log(results.map(r => Object.keys(r)));
+        // 1️⃣ Insert into flash_card_set and get the new set_id
+        const setInsert = await client.query(
+          `INSERT INTO flash_card_set (set_name, language, difficulty_level, number_of_cards)
+           VALUES ($1, $2, $3, $4)
+           RETURNING set_id`,
+          [set_name, language, difficulty_level, results.length]
+        );
 
-            console.log(results[0]["front_content"])
+        const set_id = setInsert.rows[0].set_id;
 
-            const cardRows = results.map(row => [set_id,row.front_content,row.back_content,row.hint]);
+        // 2️⃣ Build the parameterized insert for cards
+        const cardRows = results.map((row) => [
+          set_id,
+          row.front_content,
+          row.back_content,
+          row.hint || null,
+        ]);
 
-            await conn.query("INSERT INTO card(set_id,front_content,back_content,hint) VALUES ?",[cardRows])
+        const values = [];
+        const placeholders = [];
 
-            await conn.commit();
+        cardRows.forEach((row, i) => {
+          const baseIndex = i * 4;
+          placeholders.push(
+            `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3}, $${baseIndex + 4})`
+          );
+          values.push(...row);
+        });
 
-            res.json({
+        const insertQuery = `
+          INSERT INTO card (set_id, front_content, back_content, hint)
+          VALUES ${placeholders.join(",")}
+        `;
+
+        await client.query(insertQuery, values);
+
+        await client.query("COMMIT");
+
+        res.json({
           message: "Set and cards uploaded successfully",
           set_id,
-          cardsInserted: cardRows.length
+          cardsInserted: cardRows.length,
         });
-        }
-        catch(err){
-            await conn.rollback();
-            console.error("Transaction error:", err);
-            res.status(500).send("error adding flashcard set:",err);
-        }
-        finally{
-            await conn.release();
-        }
+      } catch (err) {
+        await client.query("ROLLBACK");
+        console.error("Transaction error:", err);
+        res.status(500).send("Error adding flashcard set");
+      } finally {
+        client.release();
+      }
     })
-    .on("error",(err)=>{
-        console.error("Error parsing CSV:",err);
-        res.status(500).send("Error Parsing CSV");
+    .on("error", (err) => {
+      console.error("Error parsing CSV:", err);
+      res.status(500).send("Error parsing CSV");
     });
 }
 
-module.exports = {addFlashSet};
+module.exports = { addFlashSet };

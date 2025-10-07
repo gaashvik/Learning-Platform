@@ -1,105 +1,113 @@
-const {pool} = require("../util/db");
+const { pool } = require("../util/db");
 
-
+// GET FLASH SETS BY LANGUAGE
 async function getFlashSetByLanguage(req, res) {
   const language = req.query.language;
   const user_id = req.user?.user_id;
+
   if (!language) {
     return res.status(400).send("No language was selected");
   }
 
   try {
-    const rows = await pool.query(
-      `SELECT * FROM flash_card_set f
-      LEFT JOIN user_chapter_submissions u
-      on f.set_id = u.set_id AND u.user_id = ?
-      WHERE f.language = ?`,
-      [user_id,language]
+    const result = await pool.query(
+      `SELECT f.*, u.progress, u.test_status, u.last_reviewed
+       FROM flash_card_set f
+       LEFT JOIN user_chapter_submissions u
+         ON f.set_id = u.set_id AND u.user_id = $1
+       WHERE f.language = $2`,
+      [user_id, language]
     );
 
-    console.log(rows); 
-    res.status(200).json(rows);
+    res.status(200).json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).send("Error fetching results from DB");
   }
 }
 
-async function getFlahsCards(req,res){
-    const set_id = req.params.set_id;
-    if(!set_id){
-        return res.status(400).send("No Chapter was selected");
-    }
-    try{
-    const results = await pool.query("SELECT * FROM card where set_id = ?",[set_id]);
-    console.log(results);
-    res.status(200).json(results);
-    }
-    catch(err){
-        console.log(err);
-        res.status(500).send("couldn't fetch flex cards");
-    }
-}
+// GET FLASHCARDS BY SET
+async function getFlahsCards(req, res) {
+  const set_id = req.params.set_id;
 
-async function saveCardState(req,res){
-  const set_id = req.body.set_id;
-  const user_id = req.body.user;
-  const card_id = req.body.card_id;
-  const status = req.body.status;
-
-  if (!user_id || !card_id) {
-    return res.status(400).send("user or card id missing");
+  if (!set_id) {
+    return res.status(400).send("No Chapter was selected");
   }
 
-  const con = await pool.getConnection();
+  try {
+    const result = await pool.query(
+      "SELECT * FROM card WHERE set_id = $1",
+      [set_id]
+    );
+
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Couldn't fetch flash cards");
+  }
+}
+
+// SAVE CARD STATE
+async function saveCardState(req, res) {
+  const { set_id, user: user_id, card_id, status } = req.body;
+
+  if (!user_id || !card_id) {
+    return res.status(400).send("User or card ID missing");
+  }
+
+  const client = await pool.connect();
 
   try {
+    await client.query("BEGIN");
+
     // Save or update card submission
-    await con.query(
-      `INSERT INTO user_card_submission (user_id, card_id, status)
-       VALUES (?, ?, ?)
-       ON DUPLICATE KEY UPDATE status = VALUES(status)`,
-      [user_id, card_id, status]
+    await client.query(
+      `INSERT INTO user_card_submission (user_id, card_id, set_id, status, created_at, modified_at)
+       VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       ON CONFLICT (user_id, card_id)
+       DO UPDATE SET status = EXCLUDED.status,
+                     modified_at = CURRENT_TIMESTAMP`,
+      [user_id, card_id, set_id, status]
     );
 
-    // Count known cards for this set
-    const [knownResult] = await con.query(
-      `SELECT COUNT(*) AS No_of_Known
+    // Count known cards
+    const knownResult = await client.query(
+      `SELECT COUNT(*) AS known_count
        FROM user_card_submission
-       WHERE set_id = ? AND status = 'known'`,
+       WHERE set_id = $1 AND status = 'known'`,
       [set_id]
     );
-    const known = knownResult[0].No_of_Known;
+    const known = parseInt(knownResult.rows[0].known_count, 10);
 
-    // Get total number of cards in the set
-    const [totalResult] = await con.query(
-      "SELECT number_of_cards FROM flash_card_set WHERE set_id = ?",
+    // Total number of cards
+    const totalResult = await client.query(
+      "SELECT number_of_cards FROM flash_card_set WHERE set_id = $1",
       [set_id]
     );
-    const total = totalResult[0].number_of_cards;
+    const total = totalResult.rows[0]?.number_of_cards || 0;
 
-    // Calculate progress as fraction
     const progress = total > 0 ? known / total : 0;
 
-    // Insert or update set progress
-    await con.query(
-      `INSERT INTO user_chapter_submissions (user_id, set_id, last_reviewed, progress)
-       VALUES (?, ?, NOW(), ?)
-       ON DUPLICATE KEY UPDATE
-         last_reviewed = VALUES(last_reviewed),
-         progress = VALUES(progress)`,
+    // Insert or update chapter progress
+    await client.query(
+      `INSERT INTO user_chapter_submissions (user_id, set_id, last_reviewed, progress, created_at, modified_at)
+       VALUES ($1, $2, CURRENT_TIMESTAMP, $3, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       ON CONFLICT (user_id, set_id)
+       DO UPDATE SET last_reviewed = CURRENT_TIMESTAMP,
+                     progress = EXCLUDED.progress,
+                     modified_at = CURRENT_TIMESTAMP`,
       [user_id, set_id, progress]
     );
 
+    await client.query("COMMIT");
     res.status(200).send("ok");
   } catch (err) {
+    await client.query("ROLLBACK");
     console.error(err);
-    await con.rollback();
-    res.status(500).send("error saving card state");
+    res.status(500).send("Error saving card state");
   } finally {
-    await con.release();
+    client.release();
   }
 }
 
-
-module.exports = {getFlashSetByLanguage,getFlahsCards,saveCardState};
+module.exports = { getFlashSetByLanguage, getFlahsCards, saveCardState };
