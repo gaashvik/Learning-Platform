@@ -5,15 +5,11 @@ const queries = require("../model/schema");
 
 // Create a connection pool postgresql://ps_skillcase_user:G03J1D285LMtGsaMJLwIwbc8Rp5UxPU8@dpg-d3ibbsc9c44c73akvpgg-a/ps_skillcase
 const pool = new Pool({
-  host: "postgresql", // or your hostname / IP
-  port: 5432, // default PostgreSQL port
-  user: "ps_skillcase_user", // your DB user
-  password: "G03J1D285LMtGsaMJLwIwbc8Rp5UxPU8@dpg-d3ibbsc9c44c73akvpgg-a", // your DB password
-  database: "ps_skillcase", // your DB name
-  max: 10, // connection pool size
-  idleTimeoutMillis: 30000, // close idle clients after 30s
+  connectionString: "postgresql://ps_skillcase_user:G03J1D285LMtGsaMJLwIwbc8Rp5UxPU8@dpg-d3ibbsc9c44c73akvpgg-a/ps_skillcase",
+  ssl: {
+    rejectUnauthorized: false, // Render requires SSL
+  },
 });
-
 // Test the connection
 pool.connect()
   .then(client => {
