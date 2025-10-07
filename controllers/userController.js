@@ -22,7 +22,7 @@ async function signup(req, res) {
 
   const hashed = await bcrypt.hash(password, 10);
   const newId = uuidv4();
-  const role = "amdin";
+  const role = "admin";
 
   try {
     await pool.query(
