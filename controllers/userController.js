@@ -72,13 +72,13 @@ async function login(req, res) {
     }
 
     const token = jwt.sign(
-      { user_id: user.user_id, username: user.username, role: user.role, user_prof_level:user.proficiency_level},
+      { user_id: user.user_id, username: user.username, role: user.role, user_prof_level:user.current_profeciency_level},
       config.JWT_SECRET_KEY,
       { expiresIn: "60d" }
     );
 
     res.status(200).json({
-      user: { user_id: user.user_id, username: user.username, role: user.role, user_prof_level: user.proficiency_level},
+      user: { user_id: user.user_id, username: user.username, role: user.role, user_prof_level: user.current_profeciency_level},
       token,
     });
   } catch (err) {
