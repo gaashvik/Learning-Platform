@@ -7,8 +7,10 @@ async function getFlashSetByProf(req, res) {
 
   try {
     const result = await pool.query(
-      `SELECT f.*
+      `SELECT f.*,u.user_id,u.test_status,u.last_reviewed,u.created_at,u.modified_at  
        FROM flash_card_set f
+       LEFT JOIN user_chapter_submissions u
+       ON f.set_id = u.set_id AND u.set_id IS NOT NULL
        WHERE f.proficiency_level = $1`,
       [proficiency_level]
     );
@@ -104,4 +106,26 @@ async function saveCardState(req, res) {
   }
 }
 
-module.exports = { getFlashSetByProf, getFlahsCards, saveCardState };
+async function saveUserChapterState(req,res){
+  if (!req.user) return res.status(400).json({'msg':'no authenticated user provided'});
+  const {user_id,set_id,status} = req.body;
+  if (!user_id || !set_id || !status) {
+    return res.status(400).json({ msg: 'Missing required fields' });
+  }
+  try{
+    const results = await pool.query(`
+      INSERT INTO user_chapter_submissions (user_id, set_id, test_status)
+      VALUES ($1, $2, $3)
+      ON CONFLICT (user_id, set_id)
+      DO UPDATE SET test_status = EXCLUDED.test_status
+      `,[user_id,set_id,status])
+
+      res.status(200).json({'msg':'ok'});
+  }
+  catch(err){
+    console.log("error saving user chapter state:",err)
+    res.status(500).json({'msg':'error saving user chapter state'});
+  }
+}
+
+module.exports = { getFlashSetByProf, getFlahsCards, saveUserChapterState };

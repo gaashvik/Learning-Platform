@@ -23,7 +23,6 @@ async function initDb(pool) {
     await pool.query(queries.createFlashCardSet);
     await pool.query(queries.createCards);
     await pool.query(queries.createUser);
-    await pool.query(queries.createUserCardSubmission);
     await pool.query(queries.createUserFlashSubmission);
 
     console.log("Tables created or already exist!");

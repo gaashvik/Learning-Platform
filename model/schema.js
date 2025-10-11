@@ -54,25 +54,24 @@ CREATE TABLE IF NOT EXISTS user_chapter_submissions (
 );
 `;
 
-const createUserCardSubmission = `
-CREATE TABLE IF NOT EXISTS user_card_submission (
-  user_id VARCHAR(50),
-  card_id INT NOT NULL,
-  set_id INT NOT NULL,
-  status VARCHAR(255) DEFAULT NULL,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE (user_id, card_id),
-  FOREIGN KEY (user_id) REFERENCES app_user(user_id) ON DELETE CASCADE,
-  FOREIGN KEY (card_id) REFERENCES card(card_id) ON DELETE CASCADE,
-  FOREIGN KEY (set_id) REFERENCES flash_card_set(set_id) ON DELETE CASCADE
-);
-`;
+// const createUserCardSubmission = `
+// CREATE TABLE IF NOT EXISTS user_card_submission (
+//   user_id VARCHAR(50),
+//   card_id INT NOT NULL,
+//   set_id INT NOT NULL,
+//   status VARCHAR(255) DEFAULT NULL,
+//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//   modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+//   UNIQUE (user_id, card_id),
+//   FOREIGN KEY (user_id) REFERENCES app_user(user_id) ON DELETE CASCADE,
+//   FOREIGN KEY (card_id) REFERENCES card(card_id) ON DELETE CASCADE,
+//   FOREIGN KEY (set_id) REFERENCES flash_card_set(set_id) ON DELETE CASCADE
+// );
+// `;
 
 module.exports = {
   createFlashCardSet,
   createCards,
   createUser,
-  createUserCardSubmission,
   createUserFlashSubmission
 };
