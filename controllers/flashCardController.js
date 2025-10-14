@@ -7,7 +7,8 @@ async function addFlashSet(req, res) {
     return res.status(400).send("No file uploaded");
   }
 
-  const {set_name, proficiency_level } = req.body;
+  const {set_name, proficiency_level} = req.body;
+
   const results = [];
 
   const bufferStream = new stream.PassThrough();
@@ -20,11 +21,9 @@ async function addFlashSet(req, res) {
     })
     .on("end", async () => {
       const client = await pool.connect();
-
       try {
         await client.query("BEGIN");
 
-        // 1️⃣ Insert into flash_card_set and get the new set_id
         const setInsert = await client.query(
           `INSERT INTO flash_card_set (set_name, language, proficiency_level, number_of_cards)
            VALUES ($1, 'German', $2, $3)
@@ -82,4 +81,17 @@ async function addFlashSet(req, res) {
     });
 }
 
-module.exports = { addFlashSet };
+async function deleteFlashSet(req,res){
+  const {set_name, proficiency_level} = req.body;
+
+  if (!set_name || !proficiency_level) return res.status(400).json({'msg':'set_name or proficiency_level not found'});
+  try{
+  await pool.query("DELETE FROM flash_card_set where set_name = $1 AND proficiency_level= $2 AND language ='German'",[set_name,proficiency_level]);
+  res.status(200).json({message:'deleted chapter successfully'});
+  }
+  catch (err){
+    console.log(err);
+    res.status(500).json({message:"couldn't delete the chapter"});
+  }
+}
+module.exports = { addFlashSet,deleteFlashSet };

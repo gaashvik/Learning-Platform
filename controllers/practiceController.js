@@ -11,7 +11,8 @@ async function getFlashSetByProf(req, res) {
        FROM flash_card_set f
        LEFT JOIN user_chapter_submissions u
        ON f.set_id = u.set_id AND u.set_id IS NOT NULL
-       WHERE f.proficiency_level = $1`,
+       WHERE f.proficiency_level = $1
+       ORDER BY set_name`,
       [proficiency_level]
     );
 

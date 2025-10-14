@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS flash_card_set (
   number_of_cards INT DEFAULT 0,
   set_name VARCHAR(255) NOT NULL,
   proficiency_level VARCHAR(255) NOT NULL,
-  language VARCHAR(255) NOT NULL
+  language VARCHAR(255) NOT NULL,
+  UNIQUE(set_name,proficiency_level,language)
 );
 `;
 
@@ -35,8 +36,7 @@ CREATE TABLE IF NOT EXISTS app_user (
   role VARCHAR(255) NOT NULL,
   current_profeciency_level VARCHAR(255) NOT NULL,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+  modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP);
 `;
 
 const createUserFlashSubmission = `
