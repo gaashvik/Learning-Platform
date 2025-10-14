@@ -10,10 +10,10 @@ async function getFlashSetByProf(req, res) {
       `SELECT f.*,u.user_id,u.test_status,u.last_reviewed,u.created_at,u.modified_at  
        FROM flash_card_set f
        LEFT JOIN user_chapter_submissions u
-       ON f.set_id = u.set_id AND u.set_id IS NOT NULL
-       WHERE f.proficiency_level = $1
+       ON f.set_id = u.set_id AND u.user_id = $1
+       WHERE f.proficiency_level = $2
        ORDER BY set_name`,
-      [proficiency_level]
+      [user.user_id,proficiency_level]
     );
 
     res.status(200).json(result.rows);
