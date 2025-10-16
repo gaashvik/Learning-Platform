@@ -28,17 +28,17 @@ async function createInterview(req, res) {
   const {prof_level, link, difficulty} = req.body;
 
   if (!prof_level || !link || !difficulty) {
-    return res.status(400).json({ message: 'type, proficiency level, link, or test_name missing' });
+    return res.status(400).json({ message: 'type, proficiency level, link, or difficulty  missing' });
   }
 
   try {
-    await pool.query(
-      `INSERT INTO test (proficiency_level, interview_link, difficulty)
-       VALUES ($1, $2, $3)
-       ON CONFLICT (proficiency_level, diffculty)
-       DO UPDATE SET interview_link = EXCLUDED.interview_link`,
-      [prof_level, link, difficulty]
-    );
+await pool.query(`
+  INSERT INTO interview (proficiency_level, difficulty, interview_link)
+  VALUES ($1, $2, $3)
+  ON CONFLICT (proficiency_level, difficulty)
+  DO UPDATE SET interview_link = EXCLUDED.interview_link
+`, [prof_level, difficulty, link]);
+
     res.status(200).json({ message: 'test added successfully' });
   } catch (err) {
     console.error(err);
