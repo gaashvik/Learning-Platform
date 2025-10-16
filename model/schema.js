@@ -54,24 +54,34 @@ CREATE TABLE IF NOT EXISTS user_chapter_submissions (
 );
 `;
 
-// const createUserCardSubmission = `
-// CREATE TABLE IF NOT EXISTS user_card_submission (
-//   user_id VARCHAR(50),
-//   card_id INT NOT NULL,
-//   set_id INT NOT NULL,
-//   status VARCHAR(255) DEFAULT NULL,
-//   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//   modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-//   UNIQUE (user_id, card_id),
-//   FOREIGN KEY (user_id) REFERENCES app_user(user_id) ON DELETE CASCADE,
-//   FOREIGN KEY (card_id) REFERENCES card(card_id) ON DELETE CASCADE,
-//   FOREIGN KEY (set_id) REFERENCES flash_card_set(set_id) ON DELETE CASCADE
-// );
-// `;
+const createTest = `
+  CREATE TABLE IF NOT EXISTS test (
+    test_id SERIAL PRIMARY KEY,
+    type VARCHAR(255) NOT NULL,
+    difficulty VARCHAR(255) NOT NULL,
+    proficiency_level VARCHAR(255) NOT NULL,
+    test_link TEXT NOT NULL,
+    test_name VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(proficiency_level, type, test_name)
+  );
+`
 
+const createInterview = `
+  CREATE TABLE IF NOT EXISTS interview (
+  interview_id SERIAL PRIMARY KEY,
+  proficiency_level VARCHAR(255) NOT NULL,
+  difficulty VARCHAR(255) NOT NULL,
+  interview_link TEXT NOT NULL,
+  UNIQUE(proficiency_level,difficulty)
+  );
+`
 module.exports = {
   createFlashCardSet,
   createCards,
   createUser,
-  createUserFlashSubmission
+  createUserFlashSubmission,
+  createTest,
+  createInterview
 };

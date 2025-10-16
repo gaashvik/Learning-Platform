@@ -10,7 +10,6 @@ const pool = new Pool({
     rejectUnauthorized: false, 
   },
 });
-// Test the connection
 pool.connect()
   .then(client => {
     console.log("Connected to PostgreSQL DB");
@@ -24,6 +23,8 @@ async function initDb(pool) {
     await pool.query(queries.createCards);
     await pool.query(queries.createUser);
     await pool.query(queries.createUserFlashSubmission);
+    await pool.query(queries.createTest);
+    await pool.query(queries.createInterview);
 
     console.log("Tables created or already exist!");
   } catch (err) {
