@@ -8,26 +8,19 @@ async function getTest(req, res) {
   }
 
   try {
-    const qResult = await pool.query(
-      `SELECT * FROM test WHERE proficiency_level = $1`,
+    const chapterResult = await pool.query(
+      `SELECT * FROM chapter_test WHERE proficiency_level = $1`,
       [prof_level]
     );
 
-    let finalTst = null;
-    let chapTst = [];
-
-    for (const row of qResult.rows) {
-      if (row.type === 'final') {
-        finalTst = row;
-      } else {
-        chapTst.push(row);
-      }
-    }
+    const FinalResult =  await pool.query(
+      `SELECT * FROM final_test WHERE proficiency_level = $1`,[prof_level]
+    )
 
     res.status(200).json({
       results: {
-        final: finalTst,
-        chapter: chapTst,
+        final: FinalResult.rows,
+        chapter: chapterResult.rows,
       },
       message: 'results fetched successfully',
     });
@@ -38,20 +31,24 @@ async function getTest(req, res) {
 }
 
 
-async function createTest(req, res) {
-  const { type, prof_level, link, test_name, difficulty} = req.body;
+async function createChTest(req, res) {
+  const {prof_level, easy_link, medium_link, hard_link, test_name} = req.body;
 
-  if (!type || !prof_level || !link || !test_name) {
+  if (!easy_link || !prof_level || !medium_link || !test_name || !hard_link) {
     return res.status(400).json({ message: 'type, proficiency level, link, or test_name missing' });
   }
 
   try {
     await pool.query(
-      `INSERT INTO test (type, proficiency_level, test_link, test_name, difficulty)
+      `INSERT INTO chapter_test (proficiency_level, easy_test_link, medium_test_link, hard_test_link, test_name)
        VALUES ($1, $2, $3, $4,$5)
-       ON CONFLICT (type, proficiency_level, test_name)
-       DO UPDATE SET test_link = EXCLUDED.test_link, difficulty = EXCLUDED.difficulty`,
-      [type, prof_level, link, test_name, difficulty]
+       ON CONFLICT (proficiency_level, test_name)
+       DO UPDATE SET 
+        easy_test_link = EXCLUDED.easy_test_link,
+        medium_test_link = EXCLUDED.medium_test_link,
+        hard_test_link = EXCLUDED.hard_test_link
+        `,
+      [prof_level, easy_link, medium_link, hard_link, test_name]
     );
     res.status(200).json({ message: 'test added successfully' });
   } catch (err) {
@@ -60,4 +57,28 @@ async function createTest(req, res) {
   }
 }
 
-module.exports = {getTest,createTest};
+
+async function createFinalTest(req,res) {
+   const {prof_level, link, test_name} = req.body;
+
+  if (!link || !prof_level || !test_name) {
+    return res.status(400).json({ message: 'type, proficiency level, link, or test_name missing' });
+  }
+
+  try {
+    await pool.query(
+      `INSERT INTO final_test (proficiency_level, test_link, test_name)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (proficiency_level, test_name)
+       DO UPDATE SET test_link = EXCLUDED.test_link
+        `,
+      [prof_level, link, test_name]
+    );
+    res.status(200).json({ message: 'test added successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'could not create test' });
+  }
+  
+}
+module.exports = {getTest, createChTest, createFinalTest};

@@ -5,10 +5,10 @@ const queries = require("../model/schema");
 
 // Create a connection pool postgresql://ps_skillcase_user:G03J1D285LMtGsaMJLwIwbc8Rp5UxPU8@dpg-d3ibbsc9c44c73akvpgg-a/ps_skillcase
 const pool = new Pool({
-  connectionString: "postgresql://ps_skillcase_20dl_user:MpjLxTVirnKUJ3iLXaLrwCEj0zgyqomZ@dpg-d3ips1p5pdvs73959460-a/ps_skillcase_20dl",
-  ssl: {
-    rejectUnauthorized: false, 
-  },
+  connectionString: "db://user:root@db:5432/skillcase",
+  // ssl: {
+  //   rejectUnauthorized: false, 
+  // },
 });
 pool.connect()
   .then(client => {
@@ -23,7 +23,8 @@ async function initDb(pool) {
     await pool.query(queries.createCards);
     await pool.query(queries.createUser);
     await pool.query(queries.createUserFlashSubmission);
-    await pool.query(queries.createTest);
+    await pool.query(queries.createChTest);
+    await pool.query(queries.createFinalTest);
     await pool.query(queries.createInterview);
 
     console.log("Tables created or already exist!");

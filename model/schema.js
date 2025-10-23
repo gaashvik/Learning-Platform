@@ -54,18 +54,31 @@ CREATE TABLE IF NOT EXISTS user_chapter_submissions (
 );
 `;
 
-const createTest = `
-  CREATE TABLE IF NOT EXISTS test (
+const createChTest = `
+  CREATE TABLE IF NOT EXISTS chapter_test (
     test_id SERIAL PRIMARY KEY,
-    type VARCHAR(255) NOT NULL,
-    difficulty VARCHAR(255) NOT NULL,
     proficiency_level VARCHAR(255) NOT NULL,
-    test_link TEXT NOT NULL,
+    easy_test_link TEXT DEFAULT '/not-found',
+    medium_test_link TEXT DEFAULT '/not-found',
+    hard_test_link TEXT DEFAULT '/not-found',
     test_name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(proficiency_level, type, test_name)
+    UNIQUE(proficiency_level, test_name)
   );
+`
+
+const createFinalTest = `
+CREATE TABLE IF NOT EXISTS final_test(
+  test_id SERIAL PRIMARY KEY,
+  test_name VARCHAR(255) NOT NULL,
+  proficiency_level VARCHAR(255) NOT NULL,
+  test_link TEXT DEFAULT '/not-found',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(proficiency_level, test_name)
+);
+
 `
 
 const createInterview = `
@@ -82,6 +95,7 @@ module.exports = {
   createCards,
   createUser,
   createUserFlashSubmission,
-  createTest,
+  createChTest,
+  createFinalTest,
   createInterview
 };
