@@ -5,6 +5,7 @@ const practiceRouter = require("./routes/practiceRoute");
 const userRouter = require("./routes/userRouter");
 const interviewRouter = require("./routes/interviewRouter");
 const testRouter = require("./routes/testRouter");
+const pronounceRouter = require("./routes/pronounceRoute")
 const {authMiddleware,authorizeRole,optionalAuth} = require("./middlewares/auth_middleware");
 const app = express();
 const cors = require('cors');
@@ -26,6 +27,7 @@ app.get('/',(req,res) => {
 });
 
 app.use('/api/admin',authMiddleware,authorizeRole("admin"),adminRouter);
+app.use('/api/pronounce',authMiddleware,pronounceRouter)
 app.use('/api/practice',optionalAuth,practiceRouter);
 app.use('/api/user',userRouter);
 app.use('/api/test',testRouter);
