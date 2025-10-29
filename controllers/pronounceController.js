@@ -1,5 +1,9 @@
 const fs = require('fs');
 const sdk = require('microsoft-cognitiveservices-speech-sdk');
+const stream = require("stream");
+const csv = require("csv-parser");
+const {pool} =require("../util/db")
+
 const { SUBSCRIPTION_KEY, REGION } = require('../config/configuration');
 
 async function asses(req, res) {
@@ -79,4 +83,135 @@ async function asses(req, res) {
   }
 }
 
-module.exports = { asses };
+async function addPronounceSet(req, res) {
+  if (!req.file) {
+    return res.status(400).send("No file uploaded");
+  }
+
+  const {pronounce_name, proficiency_level} = req.body;
+
+  const results = [];
+
+  const bufferStream = new stream.PassThrough();
+  bufferStream.end(req.file.buffer);
+
+  bufferStream
+    .pipe(csv({ mapHeaders: ({ header }) => header.trim() }))
+    .on("data", (row) => {
+      results.push(row);
+    })
+    .on("end", async () => {
+      const client = await pool.connect();
+      try {
+        await client.query("BEGIN");
+
+        const setInsert = await client.query(
+          `INSERT INTO pronounce_card_set (pronounce_name, language, proficiency_level, number_of_cards)
+           VALUES ($1, 'German', $2, $3)
+           RETURNING pronounce_id`,
+          [pronounce_name, proficiency_level, results.length]
+        );
+
+        const pronounce_id = setInsert.rows[0].pronounce_id;
+
+
+
+        const cardRows = results.map((row) => [
+          pronounce_id,
+          row.front_content,
+          row.back_content,
+        ]);
+
+        const values = [];
+        const placeholders = [];
+
+        cardRows.forEach((row, i) => {
+          const baseIndex = i * 3;
+          placeholders.push(
+            `($${baseIndex + 1}, $${baseIndex + 2}, $${baseIndex + 3})`
+          );
+          values.push(...row);
+        });
+
+        const insertQuery = `
+          INSERT INTO pronounce_card (pronounce_id, front_content, back_content)
+          VALUES ${placeholders.join(",")}
+        `;
+
+        await client.query(insertQuery, values);
+
+        await client.query("COMMIT");
+
+        res.json({
+          message: "Set and cards uploaded successfully",
+          pronounce_id,
+          cardsInserted: cardRows.length,
+        });
+      } catch (err) {
+        await client.query("ROLLBACK");
+        console.error("Transaction error:", err);
+        res.status(500).send("Error adding flashcard set");
+      } finally {
+        client.release();
+      }
+    })
+    .on("error", (err) => {
+      console.error("Error parsing CSV:", err);
+      res.status(500).send("Error parsing CSV");
+    });
+}
+
+async function deletePronounceSet(req,res){
+  const {pronounce_name, proficiency_level} = req.body;
+
+  if (!pronounce_name || !proficiency_level) return res.status(400).json({'msg':'set_name or proficiency_level not found'});
+  try{
+  await pool.query("DELETE FROM pronounce_card_set where pronounce_name = $1 AND proficiency_level= $2 AND language ='German'",[pronounce_name,proficiency_level]);
+  res.status(200).json({message:'deleted chapter successfully'});
+  }
+  catch (err){
+    console.log(err);
+    res.status(500).json({message:"couldn't delete the chapter"});
+  }
+}
+
+async function getPronounceCards(req, res) {
+  const pronounce_id = req.params.pronounce_id;
+
+  if (!pronounce_id) {
+    return res.status(400).send("No Chapter was selected");
+  }
+
+  try {
+    const result = await pool.query(
+      "SELECT * FROM pronounce_card WHERE pronounce_id = $1",
+      [pronounce_id]
+    );
+
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Couldn't fetch flash cards");
+  }
+}
+
+async function getPronounceSetByProf(req, res) {
+  const proficiency_level = req.params.prof_level;
+
+  try {
+    const result = await pool.query(
+      `SELECT f.*
+       FROM pronounce_card_set f
+       WHERE f.proficiency_level = $1
+       ORDER BY pronounce_name`,
+      [proficiency_level]
+    );
+
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error fetching results from DB");
+  }
+}
+
+module.exports = { asses,addPronounceSet,deletePronounceSet,getPronounceCards,getPronounceSetByProf };

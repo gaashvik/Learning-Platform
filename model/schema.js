@@ -54,6 +54,32 @@ CREATE TABLE IF NOT EXISTS user_chapter_submissions (
 );
 `;
 
+const createPronounceSet = `
+CREATE TABLE IF NOT EXISTS pronounce_card_set (
+  pronounce_id SERIAL PRIMARY KEY,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  number_of_cards INT DEFAULT 0,
+  pronounce_name VARCHAR(255) NOT NULL,
+  proficiency_level VARCHAR(255) NOT NULL,
+  language VARCHAR(255) NOT NULL,
+  UNIQUE(pronounce_name,proficiency_level,language)
+);
+`;
+
+
+const createPronounceCards = `
+CREATE TABLE IF NOT EXISTS pronounce_card (
+  pronounce_card_id SERIAL PRIMARY KEY,
+  pronounce_id INT NOT NULL,
+  front_content TEXT NOT NULL,
+  back_content TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (pronounce_id) REFERENCES pronounce_card_set(pronounce_id) ON DELETE CASCADE
+);
+`;
+
 const createChTest = `
   CREATE TABLE IF NOT EXISTS chapter_test (
     test_id SERIAL PRIMARY KEY,
@@ -78,7 +104,6 @@ CREATE TABLE IF NOT EXISTS final_test(
   modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(proficiency_level, test_name)
 );
-
 `
 
 const createInterview = `
@@ -97,5 +122,8 @@ module.exports = {
   createUserFlashSubmission,
   createChTest,
   createFinalTest,
-  createInterview
+  createInterview,
+  createPronounceCards,
+  createPronounceSet
+
 };

@@ -33,7 +33,7 @@ async function getFlahsCards(req, res) {
 
   try {
     const result = await pool.query(
-      "SELECT * FROM card WHERE set_id = $1",
+      "SELECT * FROM card WHERE set_id = $1 order by set_id asc",
       [set_id]
     );
 
