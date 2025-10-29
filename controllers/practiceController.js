@@ -113,7 +113,7 @@ async function saveUserChapterState(req,res){
   if (!req.user) return res.status(400).json({'msg':'no authenticated user provided'});
   console.log(req.body);
   const {user_id,set_id,status,order,current_index} = req.body;
-  if (!user_id || !set_id || !status || !order || !current_index) {
+  if (!user_id || !set_id || status === undefined || !order || !current_index) {
     return res.status(400).json({ msg: 'Missing required fields' });
   }
   var status_fixed;
