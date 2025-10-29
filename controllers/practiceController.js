@@ -1,4 +1,6 @@
+const { result } = require("lodash");
 const { pool } = require("../util/db");
+const e = require("express");
 
 // GET FLASH SETS BY LANGUAGE
 async function getFlashSetByProf(req, res) {
@@ -109,18 +111,29 @@ async function saveCardState(req, res) {
 
 async function saveUserChapterState(req,res){
   if (!req.user) return res.status(400).json({'msg':'no authenticated user provided'});
-  const {user_id,set_id,status} = req.body;
-  if (!user_id || !set_id || !status) {
+  console.log(req.body);
+  const {user_id,set_id,status,order,current_index} = req.body;
+  if (!user_id || !set_id || !status || !order || !current_index) {
     return res.status(400).json({ msg: 'Missing required fields' });
+  }
+  var status_fixed;
+  if (status === 'null' || status === null || status === undefined) {
+  status_fixed = false;
+  }
+  else{
+    status_fixed=status
   }
   try{
     const results = await pool.query(`
-      INSERT INTO user_chapter_submissions (user_id, set_id, test_status)
-      VALUES ($1, $2, $3)
+      INSERT INTO user_chapter_submissions (user_id, set_id, test_status,current_order,current_index,useDefault)
+      VALUES ($1, $2, $3,$4,$5,FALSE)
       ON CONFLICT (user_id, set_id)
       DO UPDATE SET test_status = EXCLUDED.test_status
-      `,[user_id,set_id,status])
-
+      ,current_order = EXCLUDED.current_order
+      ,current_index = EXCLUDED.current_index
+      ,useDefault = EXCLUDED.useDefault
+      `,[user_id,set_id,status_fixed,order,current_index])
+      
       res.status(200).json({'msg':'ok'});
   }
   catch(err){
@@ -128,5 +141,28 @@ async function saveUserChapterState(req,res){
     res.status(500).json({'msg':'error saving user chapter state'});
   }
 }
+async function getUserChapterState(req,res){
+  if (!req.user) return res.status(400).json({'msg':'no authenticated user provided'});
+  user_id = req.user.user_id;
+  set_id = req.params.set_id;
+  if (!user_id || !set_id ) {
+    return res.status(400).json({ msg: 'Missing required fields' });
+  }
+  try{
+    const results = await pool.query(`
+     SELECT * FROM user_chapter_submissions
+     where user_id=$1 and set_id = $2
+      `,[user_id,set_id])
 
-module.exports = { getFlashSetByProf, getFlahsCards, saveUserChapterState };
+      if (results.rows.length === 0){
+        return res.status(200).json({"useDefault":true});
+      }
+      res.status(200).json(results.rows);
+  }
+  catch(err){
+    console.log("error saving user chapter state:",err)
+    res.status(500).json({'msg':'error saving user chapter state'});
+  }
+}
+
+module.exports = { getFlashSetByProf, getFlahsCards, saveUserChapterState, getUserChapterState };

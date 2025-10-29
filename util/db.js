@@ -26,6 +26,8 @@ async function initDb(pool) {
     await pool.query(queries.createChTest);
     await pool.query(queries.createFinalTest);
     await pool.query(queries.createInterview);
+    await pool.query(queries.createPronounceSet);
+    await pool.query(queries.createPronounceCards);
 
     console.log("Tables created or already exist!");
   } catch (err) {
