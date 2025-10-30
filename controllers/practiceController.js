@@ -24,7 +24,25 @@ async function getFlashSetByProf(req, res) {
     res.status(500).send("Error fetching results from DB");
   }
 }
+async function getFlahsCards(req, res) {
+  const set_id = req.params.set_id;
 
+  if (!set_id) {
+    return res.status(400).send("No Chapter was selected");
+  }
+
+  try {
+    const result = await pool.query(
+      "SELECT * FROM card WHERE set_id = $1 order by set_id asc",
+      [set_id]
+    );
+
+    res.status(200).json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Couldn't fetch flash cards");
+  }
+}
 
 async function saveUserChapterState(req,res){
   if (!req.user) return res.status(400).json({'msg':'no authenticated user provided'});
