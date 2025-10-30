@@ -60,7 +60,7 @@ async function saveUserChapterState(req,res){
   if (!order){
     return res.status(400).json({ msg: 'order not found' });
   }
-  if (!current_index){
+  if (current_index === undefined){
     return res.status(400).json({ msg: 'current_idx not found' });
   }
   // if (!user_id || !set_id || status === undefined || !order || !current_index) {
