@@ -31,6 +31,9 @@ async function getTest(req, res) {
 }
 
 
+
+
+
 async function createChTest(req, res) {
   const {prof_level, easy_link, medium_link, hard_link, test_name} = req.body;
 
@@ -58,6 +61,49 @@ async function createChTest(req, res) {
 }
 
 
+async function deleteChTest(req, res) {
+  const {test_id} = req.body;
+
+  if (!test_id) {
+    return res.status(400).json({ message: 'test id is mising.' });
+  }
+
+  try {
+    await pool.query(
+      `DELETE from chapter_test
+      WHERE test_id=$1
+        `,
+      [test_id]
+    );
+    res.status(200).json({ message: 'test deleted successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'could not delete test with test_id' });
+  }
+}
+
+async function deleteFinalTest(req,res){
+  const {test_id} = req.body;
+
+  if (!test_id){
+    return res.status(400).json({msg:"the test id is not present"});
+  }
+
+  try{
+    await pool.query(`
+      DELETE from final_test
+      where test_id = $1;
+      `,[test_id]);
+
+      res.status(200).json({message:"the final test with test_id "+test_id+"was deleted"});
+  }
+  catch(err){
+    console.log(err);
+    res.status(500).json({message:"the final test could not be deleted"});
+  }
+}
+
+
 async function createFinalTest(req,res) {
    const {prof_level, link, test_name} = req.body;
 
@@ -81,4 +127,4 @@ async function createFinalTest(req,res) {
   }
   
 }
-module.exports = {getTest, createChTest, createFinalTest};
+module.exports = {getTest, createChTest, createFinalTest, deleteChTest,deleteFinalTest};

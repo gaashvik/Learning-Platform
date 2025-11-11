@@ -46,4 +46,25 @@ await pool.query(`
   }
 }
 
-module.exports = {getInterview,createInterview};
+async function deleteInterview(req,res) {
+  const {interview_id} =  req.body;
+
+  if (!interview_id){
+    return res.status(400).json({message:"The interview id to be deleted is missing"});
+  }
+
+  try{
+    await pool.query(`
+      DELETE from interview
+      WHERE interview_id = $1;
+      `,[interview_id]);
+
+      res.status(200).json({message:"the interview was deleted successfully"});
+  }
+  catch(err){
+    console.log(err);
+    res.status(500).json({message:"the interview could not be deleted"});
+  }
+}
+
+module.exports = {getInterview,createInterview,deleteInterview};

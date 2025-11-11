@@ -9,7 +9,7 @@ const pronounceRouter = require("./routes/pronounceRoute")
 const {authMiddleware,authorizeRole,optionalAuth} = require("./middlewares/auth_middleware");
 const app = express();
 const cors = require('cors');
-const allowed_orgins=["https://skillcase-fronend-k4z5.vercel.app","http://localhost:5173"]
+const allowed_orgins=["https://skillcase-fronend-k4z5.vercel.app","http://localhost:5173","https://learner.skillcase.in"]
 app.use(cors({
   origin: allowed_orgins, 
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
