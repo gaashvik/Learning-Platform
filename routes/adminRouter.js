@@ -7,7 +7,7 @@ const {createInterview} =require('../controllers/interviewController');
 const { addPronounceSet, deletePronounceSet } = require("../controllers/pronounceController");
 const {getTest,deleteChTest,deleteFinalTest} = require('../controllers/testController')
 const{getInterview,deleteInterview}= require("../controllers/interviewController");
-const{getUserAnalytics} = require('../controllers/analyticsController');
+const{getUserAnalytics,getPreviousMonthFlashCardInteractions,getNewUserAnalytics,getPreviousMonthUserCompletionRate,getPreviousMonthTestCompletionRate,getTotalUsers} = require('../controllers/analyticsController');
 
 const router=express.Router();
 
@@ -40,6 +40,12 @@ router.post('deleteInterview',deleteInterview)
 
 
 router.get('/analytics',getUserAnalytics);
+router.get('/analytics/user-count',getTotalUsers);
+router.get('/analytics/new-user-analytics',getNewUserAnalytics)
+router.get('/analytics/prev-month-interaction-analytics',getPreviousMonthFlashCardInteractions)
+router.get('/analytics/prev-month-user-completetion-analytics',getPreviousMonthUserCompletionRate)
+router.get('/analytics/prev-month-test-completetion-analytics',getPreviousMonthTestCompletionRate)
+
 
 
 

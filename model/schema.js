@@ -57,6 +57,22 @@ CREATE TABLE IF NOT EXISTS user_chapter_submissions (
 );
 `;
 
+const createPronounceSubmission = `
+CREATE TABLE IF NOT EXISTS user_chapter_submissions (
+  user_id VARCHAR(50),
+  set_id INT NOT NULL,
+  last_reviewed TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  progress INT DEFAULT 0,
+  current_index INTEGER DEFAULT 0,
+  test_status BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  modified_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE (user_id, set_id),
+  FOREIGN KEY (user_id) REFERENCES app_user(user_id) ON DELETE CASCADE,
+  FOREIGN KEY (set_id) REFERENCES flash_card_set(set_id) ON DELETE CASCADE
+);
+`;
+
 const createPronounceSet = `
 CREATE TABLE IF NOT EXISTS pronounce_card_set (
   pronounce_id SERIAL PRIMARY KEY,

@@ -46,7 +46,6 @@ async function getFlahsCards(req, res) {
 
 async function saveUserChapterState(req,res){
   if (!req.user) return res.status(400).json({'msg':'no authenticated user provided'});
-  console.log(req.body);
   const {user_id,set_id,status,order,current_index} = req.body;
   if (!user_id){
     return res.status(400).json({ msg: 'user_id not found' });
@@ -63,9 +62,7 @@ async function saveUserChapterState(req,res){
   if (current_index === undefined){
     return res.status(400).json({ msg: 'current_idx not found' });
   }
-  // if (!user_id || !set_id || status === undefined || !order || !current_index) {
-  //   return res.status(400).json({ msg: 'Missing required fields' });
-  // }
+
   var status_fixed;
   if (status === 'null' || status === null || status === undefined) {
   status_fixed = false;

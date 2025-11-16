@@ -9,7 +9,7 @@ const pronounceRouter = require("./routes/pronounceRoute")
 const {authMiddleware,authorizeRole,optionalAuth} = require("./middlewares/auth_middleware");
 const app = express();
 const cors = require('cors');
-const allowed_orgins=["https://skillcase-fronend-k4z5.vercel.app","http://localhost:5173","https://learner.skillcase.in"]
+const allowed_orgins=["https://skillcase-fronend-k4z5.vercel.app","http://localhost:5173","https://learner.skillcase.in","http://localhost:5174"]
 app.use(cors({
   origin: allowed_orgins, 
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -26,7 +26,7 @@ app.get('/',(req,res) => {
     res.send('FlashCard API with MySQL ready!');
 });
 
-app.use('/api/admin',authMiddleware,authorizeRole("admin"),adminRouter);
+app.use('/api/admin',adminRouter);
 app.use('/api/pronounce',authMiddleware,pronounceRouter)
 app.use('/api/practice',optionalAuth,practiceRouter);
 app.use('/api/user',userRouter);
